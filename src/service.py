@@ -45,7 +45,7 @@ class Application:
 				None.
 		"""
 
-		self.headers = [('Content-type', 'text/plain; charset=utf-8')]
+		self.headers = [('Content-type', 'application/json; charset=utf-8')]
 		self.status = None
 		self.response = None
 
