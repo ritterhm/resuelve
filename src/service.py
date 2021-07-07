@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # ===============================================================================
 # Service entrypoint file. Manages http requests and responses.
 #
@@ -18,6 +16,7 @@ from typing import Callable
 
 # Project libraries
 import common
+import path
 
 
 # -----------------------------------------------------------------------------
@@ -30,8 +29,8 @@ class Application:
 
 		Attributes:
 			headers:
-				Mandatory HTTP headers.
-			status:
+				list Mandatory HTTP headers.
+			str status:
 				HTTP status code.
 	"""
 
@@ -48,6 +47,7 @@ class Application:
 
 		self.headers = [('Content-type', 'text/plain; charset=utf-8')]
 		self.status = None
+		self.response = None
 
 	def __call__(self, environ:dict, start_response:Callable) -> list:
 		"""
@@ -63,11 +63,13 @@ class Application:
 				list. Returns a list bytes list with response of the service.
 		"""
 
+		# Cleaning status and response
+		self.status = common.HTTPS.HTTPS_200
+		self.response = []
+
+		path.runner(environ, self)
+
 		# Response init.
-		self.status = '200 OK'
-		start_response(self.status, self.headers)
+		start_response(self.status.value, self.headers)
 
-		# Response generation
-		response = [("{}: {!s}\n".format(key, value)).encode("utf-8") for key, value in environ.items()]
-
-		return response
+		return [chunk.encode(common.ENCODING) for chunk in self.response]
