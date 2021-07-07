@@ -12,10 +12,34 @@
 # -----------------------------------------------------------------------------
 
 # Core libraries
+import dataclasses
 import json
 
 # Project libraries
 import common
+
+
+# -----------------------------------------------------------------------------
+# class Player
+# -----------------------------------------------------------------------------
+
+@dataclasses.dataclass
+class Player:
+	"""
+		Player object. It must match JSON data request structure to automate
+		serializing and deserializing.
+
+		Attributes:
+			Must match evaluacion backend description.
+	"""
+
+	nombre: str
+	nivel: str
+	goles: int
+	sueldo: int
+	bono: int
+	sueldo_completo: float
+	equipo: str
 
 
 # -----------------------------------------------------------------------------
@@ -53,6 +77,12 @@ def calculate(environ:dict, service:object) -> None:
 		service.status = common.HTTPS.HTTPS_400
 		service.response.append(repr(common.HTTPS.HTTPS_400.value))
 		return
+
+
+	for chunk in data['jugadores']:
+	# Test automated deserialize
+		player = Player(**chunk)
+		print(player)
 
 	# Return a copy of request data
 	service.response.append(str(data))
