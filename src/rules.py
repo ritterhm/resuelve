@@ -13,6 +13,7 @@
 
 # Core libraries
 import dataclasses
+import enum
 import json
 
 # Project libraries
@@ -20,7 +21,19 @@ import common
 
 
 # -----------------------------------------------------------------------------
-# class Player
+# Enumerations
+# -----------------------------------------------------------------------------
+
+class Level(enum.Enum):
+	"""Goals by player level quotas enumeration."""
+
+	A = 5
+	B = 10
+	C = 15
+	Cuauh = 20
+
+# -----------------------------------------------------------------------------
+# Class Player
 # -----------------------------------------------------------------------------
 
 @dataclasses.dataclass
@@ -43,6 +56,54 @@ class Player:
 
 
 # -----------------------------------------------------------------------------
+# Class Team
+# -----------------------------------------------------------------------------
+
+class Team:
+	"""
+		Class to hold and calculate all players data for each team.
+
+		Attributes:
+			list _players:
+				Private holder for team members.
+			int goals:
+				Total team goals.
+			int quota:
+				Total goals quota for the team.
+	"""
+
+	def __init__(self) -> None:
+		"""Class constructor. initializes class atributes"""
+
+		self._players = []
+		self.goals = 0
+		self.quota = 0
+
+	def calculate(self) -> None:
+		"""Calculates wages for each team member."""
+
+		team_bonus = self.goals / self.quota
+
+		for player in self._players:
+			player_bonus = (team_bonus + player.goles / Level[player.nivel].value) / 2
+			player.sueldo_completo = round(player.sueldo + player.bono * player_bonus, 2)
+			print(player)
+
+	def player_add(self, player:Player) -> None:
+		"""
+			Add new player for team
+
+			Arguments:
+				Player player:
+					Player object.
+		"""
+
+		self._players.append(player)
+		self.goals += player.goles
+		self.quota += Level[player.nivel].value
+
+
+# -----------------------------------------------------------------------------
 # Content generator rules
 # -----------------------------------------------------------------------------
 
@@ -58,6 +119,9 @@ def calculate(environ:dict, service:object) -> None:
 		Returns:
 			None.
 	"""
+
+	# Team objects holder.
+	teams = {}
 
 	# Get content lenght.
 	try:
@@ -79,10 +143,24 @@ def calculate(environ:dict, service:object) -> None:
 		return
 
 
-	for chunk in data['jugadores']:
-	# Test automated deserialize
-		player = Player(**chunk)
-		print(player)
+	try:
+		for chunk in data['jugadores']:
+		# Test automated deserialize
+			player = Player(**chunk)
 
-	# Return a copy of request data
-	service.response.append(str(data))
+			# Separate players by team
+			if player.equipo not in teams:
+				teams[player.equipo] = Team()
+
+			teams[player.equipo].player_add(player)
+
+		# Calculate wages
+		for key, team in teams.items():
+			team.calculate()
+
+		# Return a copy of request data
+		service.response.append(str(data))
+	except:
+		# Server error
+		service.status = common.HTTPS.HTTPS_500
+		service.response.append(repr(common.HTTPS.HTTPS_500.value))
