@@ -138,43 +138,44 @@ def calculate(environ:dict, service:object) -> None:
 	except:
 	# If data can't be read then return error as response.
 		service.status = common.HTTPS.HTTPS_400
-		service.response.append(repr(common.HTTPS.HTTPS_400.value))
+		service.response.append('"' + common.HTTPS.HTTPS_400.value + '"')
 		return
 
 
-	#try:
-	for chunk in data['jugadores']:
-	# Test automated deserialize
-		player = Player(**chunk)
+	try:
+		for chunk in data['jugadores']:
+		# Test automated deserialize
+			player = Player(**chunk)
 
-		# Separate players by team
-		if player.equipo not in teams:
-			try:
-				teams[player.equipo] = Team()
-			except:
-			# If player object can't be created the JSON is bad formed.
-				service.status = common.HTTPS.HTTPS_400
-				service.response.append(repr(common.HTTPS.HTTPS_400.value))
-				return
+			# Separate players by team
+			if player.equipo not in teams:
+				try:
+					teams[player.equipo] = Team()
+				except:
+				# If player object can't be created the JSON is bad formed.
+					service.status = common.HTTPS.HTTPS_400
+					service.response.append('"' + common.HTTPS.HTTPS_400.value + '"')
+					return
 
 
-		teams[player.equipo].player_add(player)
+			teams[player.equipo].player_add(player)
 
-	# Calculate wages
-	for key, team in teams.items():
-		team.calculate()
+		# Calculate wages
+		for key, team in teams.items():
+			team.calculate()
 
-	# Serialize output
-	output = []
+		# Serialize output
+		output = []
 
-	for key, team in teams.items():
-		for player in team._players:
-			output.append(player.__dict__)
+		for key, team in teams.items():
+			for player in team._players:
+				output.append(player.__dict__)
 
-	service.response.append('{"jugadores": ')
-	service.response.append(json.dumps(output))
-	service.response.append('}')
-	#except:
-		## Server error
-		#service.status = common.HTTPS.HTTPS_500
-		#service.response.append(repr(common.HTTPS.HTTPS_500.value))
+		service.response.append('{"jugadores": ')
+		service.response.append(json.dumps(output))
+		service.response.append('}')
+	except Exception as pyerr:
+		# Server error
+		print(pyerr)
+		service.status = common.HTTPS.HTTPS_500
+		service.response.append('"' + common.HTTPS.HTTPS_500.value + '"')
