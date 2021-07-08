@@ -90,7 +90,7 @@ def runner(environ:dict, service:object) -> None:
 			# refactored.
 
 				service.status = common.HTTPS.HTTPS_405
-				service.response.append('"' + common.HTTPS.HTTPS_405.value + '"'))
+				service.response.append('"' + common.HTTPS.HTTPS_405.value + '"')
 
 			break;
 	else:
